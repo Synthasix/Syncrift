@@ -8,6 +8,7 @@ import com.hexplatoon.syncrift_backend.entity.User;
 import com.hexplatoon.syncrift_backend.repository.ChallengeRepository;
 import com.hexplatoon.syncrift_backend.repository.FriendRepository;
 import com.hexplatoon.syncrift_backend.repository.UserRepository;
+import com.hexplatoon.syncrift_backend.service.battle.BattleService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,7 @@ public class ChallengeService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final FriendService friendService;
+    private final BattleService battleService;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     /**
@@ -115,6 +117,12 @@ public class ChallengeService {
 
         // Update challenge status
         challenge.setStatus(ChallengeStatus.ACCEPTED);
+
+        battleService.createBattle(
+                challenge.getEventType(),
+                sender.getUsername(),
+                recipientUsername
+        );
     }
 
     /**
