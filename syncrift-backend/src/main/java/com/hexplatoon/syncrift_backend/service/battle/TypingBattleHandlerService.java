@@ -11,5 +11,9 @@ public class TypingBattleHandlerService {
     }
 
     public Result getResult(Long battleId) {
+        return null;
+    }
+
+    public void saveUserText(Long battleId, String username, String text) {
     }
 }

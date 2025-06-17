@@ -16,4 +16,7 @@ public class CssBattleHandlerService {
     public Result getResult(Long battleId) throws IOException {
         return null;
     }
+
+    public void saveUserText(Long battleId, String username, String text) {
+    }
 }
