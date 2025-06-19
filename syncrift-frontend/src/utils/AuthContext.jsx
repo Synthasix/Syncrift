@@ -1,3 +1,4 @@
+// AuthContext.jsx
 "use client";
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,9 +8,37 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [user, setUser] = useState(null);
+  const [friends, setFriends] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  
+
+  const fetchFriends = async () => {
+    try {
+      const response = await fetch('http://localhost:8081/api/friends', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch friends');
+      const data = await response.json();
+      setFriends(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchPendingRequests = async () => {
+    try {
+      const response = await fetch('http://localhost:8081/api/friends/pending', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch pending requests');
+      const data = await response.json();
+      setPendingRequests(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     const verifyToken = async () => {
       if (!token) {
@@ -24,6 +53,9 @@ export function AuthProvider({ children }) {
         if (response.ok) {
           const userData = await response.json();
           setUser(userData.username);
+          // Fetch friends after successful auth
+          await fetchFriends();
+          await fetchPendingRequests();
         } else {
           logout();
         }
@@ -87,7 +119,19 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      loading, 
+      friends,
+      setFriends,
+      pendingRequests,
+      fetchFriends,
+      fetchPendingRequests,
+      login, 
+      signup, 
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );
