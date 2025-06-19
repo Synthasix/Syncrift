@@ -1,6 +1,7 @@
 import React, {useRef} from "react";
-import BlobBackground from "../components/BlobBackground";
-import BouncyArrowButton from "../components/BouncyArrowButton";
+import BlobBackground from "@/components/BlobBackground";
+import BouncyArrowButton from "@/components/BouncyArrowButton";
+import BattleCards from "@/components/BattleCards";
 
 function LandingPage() {
   const contentRef = useRef();
@@ -32,6 +33,11 @@ function LandingPage() {
                 <BouncyArrowButton />
               </div>
             </div>
+          </section>
+
+          {/* Battle page section */}
+          <section ref={contentRef}>
+            <BattleCards />
           </section>
         </div>
       </div>
