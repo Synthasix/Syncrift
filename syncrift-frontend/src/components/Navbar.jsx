@@ -1,16 +1,29 @@
 "use client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Bell, UserCircle, Users, LogOut } from "lucide-react";
-import { useAuth } from "@/utils/AuthContext";
+import { useAuth } from "../utils/AuthContext";
 import { useState } from "react";
 import LoginPage from "./LoginPage";
 import SignUP from "./SignUP";
+import NotificationPopup from "./NotificationPopup";
+import { useLogin } from "@/utils/LoginContext";
 
 export default function Navbar() {
-  const [showLogin, setShowLogin] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
+  // const [showLogin, setShowLogin] = useState(false);
+  const {showLogin, setShowLogin} = useLogin();
+  const [showSignup, setShowSignup] = useState(false); 
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handlefriendOnclick = (e) =>{
+    e.preventDefault();
+    navigate('/friends');
+  }
+  
+  // Initialize with empty notifications array
+  const [notifications, setNotifications] = useState([]);
+
 
   return (
     <>
@@ -26,30 +39,41 @@ export default function Navbar() {
                 <Button
                   variant="outline"
                   className="border-white/10 text-white hover:bg-white/40 hover:text-black"
-                  onClick={() => setShowLogin(true)}
+                  onClick={() => {
+                    setShowLogin(true);
+                  }}
                 >
                   Login
                 </Button>
                 <Button
                   className="bg-white/10 text-white hover:bg-white/20"
-                  onClick={() => setShowSignup(true)}
+                  onClick={() => {
+                    setShowSignup(true);
+                  }}
                 >
                   Sign Up
                 </Button>
               </>
             ) : (
               <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/10"
+                <NotificationPopup 
+                  notifications={notifications} 
+                  setNotifications={setNotifications}
                 >
-                  <Bell className="h-5 w-5" />
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/10 relative"
+                  >
+                    <Bell className="h-5 w-5" />
+                  </Button>
+                </NotificationPopup>
+
                 <Button
                   variant="ghost"
                   size="icon"
                   className="text-white hover:bg-white/10"
+                  onClick={handlefriendOnclick}
                 >
                   <Users className="h-5 w-5" />
                 </Button>
@@ -82,6 +106,7 @@ export default function Navbar() {
             onClick={() => setShowLogin(false)}
           />
           <div className="relative flex items-center justify-center h-full w-full p-4">
+            {console.log(showLogin)}
             <LoginPage onClose={() => setShowLogin(false)} />
           </div>
         </div>
