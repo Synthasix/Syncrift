@@ -8,22 +8,33 @@ import React, {
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { useAuth } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
+
+// Create Battle Context
+const BattleContext = createContext(null);
+export const useBattle = () => useContext(BattleContext);
 
 const StompContext = createContext(null);
 export const useStomp = () => useContext(StompContext);
 
 export const StompProvider = ({ children }) => {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const stompClientRef = useRef(null);
   const [connected, setConnected] = useState(false);
   const subscriptions = useRef([]);
   const reconnectTimeout = useRef(null);
 
+  const [battleData, setBattleData] = useState(null);
+
+  const updateBattleData = (data) => {
+    setBattleData(data);
+  };
+
   const connect = () => {
     const socket = new SockJS("http://localhost:8081/ws");
     const stompClient = Stomp.over(socket);
-
-    stompClient.reconnectDelay = 0; 
+    stompClient.reconnectDelay = 0;
 
     stompClient.connect(
       { Authorization: `Bearer ${token}` },
@@ -32,6 +43,7 @@ export const StompProvider = ({ children }) => {
         stompClientRef.current = stompClient;
         setConnected(true);
 
+        // Resubscribe to stored destinations
         subscriptions.current.forEach(({ destination, callback }) => {
           stompClient.subscribe(destination, callback);
         });
@@ -82,7 +94,7 @@ export const StompProvider = ({ children }) => {
 
   const subscribeWithCleanup = (destination, callback) => {
     const subscription = subscribe(destination, callback);
-  
+
     return () => {
       if (subscription) {
         subscription.unsubscribe();
@@ -93,6 +105,26 @@ export const StompProvider = ({ children }) => {
       }
     };
   };
+
+  // 👇 Custom subscription logic
+  useEffect(() => {
+    if (!connected) return;
+
+    const unsubscribe = subscribeWithCleanup("/user/topic/battle/create", (message) => {
+      const body = JSON.parse(message.body);
+      console.log("📩 Received battle message:", body);
+
+      if (body.message === "CREATED") {
+        setBattleData(body);
+        localStorage.removeItem("battleId");
+        navigate("/room");
+      }
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [connected]);
 
   useEffect(() => {
     if (!token) return;
@@ -110,8 +142,10 @@ export const StompProvider = ({ children }) => {
   }, [token]);
 
   return (
-    <StompContext.Provider value={{ connected, send, subscribe, subscribeWithCleanup }}>
-      {children}
-    </StompContext.Provider>
+    <BattleContext.Provider value={{ battleData, updateBattleData }}>
+      <StompContext.Provider value={{ connected, send, subscribe, subscribeWithCleanup }}>
+        {children}
+      </StompContext.Provider>
+    </BattleContext.Provider>
   );
 };
