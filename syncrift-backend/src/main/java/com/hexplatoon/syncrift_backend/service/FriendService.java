@@ -25,13 +25,11 @@ import java.util.stream.Collectors;
 @Validated
 @Transactional
 @RequiredArgsConstructor
-public class
-
-
-FriendService {
+public class FriendService {
 
     private final FriendRepository friendRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /**
      * Sends a friend request from one user to another.
@@ -78,7 +76,12 @@ FriendService {
 
         friendRepository.save(friendRequest);
         // Send notification to target user
-
+        notificationService.createNotification(
+                targetUsername,
+                currentUsername,
+                "friend_request",
+                currentUsername + " sent you a friend request"
+        );
     }
 
     /**
@@ -117,6 +120,12 @@ FriendService {
         }
 
         // Send notification to the sender
+        notificationService.createNotification(
+                senderUsername,
+                recipientUsername,
+                "friend_request_accepted",
+                recipientUsername + " accepted your friend request"
+        );
 
         return "Friend request accepted";
     }
@@ -141,6 +150,12 @@ FriendService {
         }
 
         // Send notification to the sender
+        notificationService.createNotification(
+                senderUsername,
+                currentUsername,
+                "friend_request_declined",
+                currentUsername + " declined your friend request"
+        );
 
         friendRepository.delete(pendingRequest);
         return "Friend request declined";
