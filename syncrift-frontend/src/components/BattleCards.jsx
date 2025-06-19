@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Keyboard, Palette, Code } from "lucide-react";
 import { useAuth } from '@/utils/AuthContext';
+import FriendChallenge from './FriendChallenge';
 import { useLogin } from '@/utils/LoginContext';
 
 export default function BattleCards() {
@@ -102,6 +103,24 @@ export default function BattleCards() {
           </div>
         </Card>
       </div>
+
+      {selectedBattle && (
+        <div className="fixed inset-0 z-[999]">
+          {/* Dimmed background with blur - clicking outside closes popup */}
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-lg"
+            onClick={() => setSelectedBattle(null)}
+          />
+
+          {/* Centered modal */}
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+              <FriendChallenge
+                battleType={selectedBattle}
+                onClose={() => setSelectedBattle(null)}
+              />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
