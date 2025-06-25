@@ -10,8 +10,6 @@ import {
 import { AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "../utils/AuthContext";
-import SockJS from "sockjs-client";
-import * as Stomp from "stompjs";
 import { cn } from "@/lib/utils";
 import { useStomp } from "@/utils/StompContext";
 
