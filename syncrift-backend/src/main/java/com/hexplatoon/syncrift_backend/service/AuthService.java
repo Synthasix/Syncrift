@@ -91,21 +91,18 @@ public class AuthService {
     public AuthResponse login(@Valid AuthRequest request) {
         try {
             User user = findUserByLoginIdentifier(request.getLoginIdentifier());
-
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             user.getUsername(),
                             request.getPassword()
                     )
             );
-
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             String token = jwtTokenProvider.createToken(
                     user.getUsername(),
                     user.getAuthorities()
             );
-
             Date expirationDate = jwtTokenProvider.extractExpiration(token);
             LocalDateTime tokenExpiresAt = expirationDate.toInstant()
                     .atZone(ZoneId.systemDefault())
