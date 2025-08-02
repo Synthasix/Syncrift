@@ -1,4 +1,6 @@
 import TypingBattle from '@/components/TypingBattle';
+import CssBattle from '@/components/CssBattle'
+import CodeforcesBattle from '@/components/CodeforcesBattle';
 import { useAuth } from '@/utils/AuthContext';
 import { useBattle, useStomp } from '@/utils/StompContext';
 import { useEffect ,  } from 'react';
@@ -48,9 +50,9 @@ const BattlePage = () => {
     case 'TB':
       return <TypingBattle />;
     case 'CSS':
-      return <CssBattle data={battleData} />;
+      return <CssBattle />;
     case 'CF':
-      return <CodeforcesBattle data={battleData} />;
+      return <CodeforcesBattle />;
     default:
       return <div>Unknown battle type</div>;
   }
