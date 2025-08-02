@@ -31,7 +31,7 @@ public class NotificationController {
         return ResponseEntity.ok(notifications);
     }
 
-    @PutMapping("/{notificationId}/read")
+    @PatchMapping("/{notificationId}/read")
     public ResponseEntity<?> markAsRead(
             @PathVariable Long notificationId,
             Authentication authentication) {
@@ -40,7 +40,7 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/read-all")
+    @PatchMapping("/read-all")
     public ResponseEntity<?> markAllAsRead(Authentication authentication) {
         String username = authentication.getName();
         notificationService.markAllNotificationsAsRead(username);

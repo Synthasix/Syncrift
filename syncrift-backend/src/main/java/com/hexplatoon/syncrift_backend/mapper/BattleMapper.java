@@ -23,7 +23,7 @@ public class BattleMapper {
             else if (battle.getCategory() == Battle.Category.CSS) obj = mapper.readValue(battle.getConfigJson(), CssConfig.class);
             else if (battle.getCategory() == Battle.Category.CF) obj = mapper.readValue(battle.getConfigJson(), CodeforcesConfig.class);
 
-            assert obj instanceof TypingConfig;
+
             return BattleHistoryDto.builder()
                     .id(battle.getId())
                     .category(battle.getCategory().name())
