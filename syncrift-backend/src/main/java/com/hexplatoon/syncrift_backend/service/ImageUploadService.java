@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import net.coobird.thumbnailator.Thumbnails; // Correct import for Thumbnailator
+import net.coobird.thumbnailator.Thumbnails;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
