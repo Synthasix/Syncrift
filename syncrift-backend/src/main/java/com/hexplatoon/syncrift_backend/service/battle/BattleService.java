@@ -159,7 +159,8 @@ public class BattleService{
         battleRepository.save(battle);
 
         // Start timer
-        battleTimerService.startBattleTimer(battleId, battle.getDuration() + 5);
+        battleTimerService.startBattleTimer(battleId, battle.getDuration() +
+                (battle.getCategory() == Battle.Category.TB ? 5 : 0));
 
 //        activeSessions.put(battleId, session);
     }

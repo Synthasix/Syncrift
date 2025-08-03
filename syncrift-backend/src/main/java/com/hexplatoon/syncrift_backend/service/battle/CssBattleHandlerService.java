@@ -29,8 +29,7 @@ public class CssBattleHandlerService {
         Config config = CssConfig.builder()
                 .imageUrl(image.getCloudinaryUrl())
                 .duration(duration)
-                .color1(image.getColor1())
-                .color2(image.getColo2())
+                .colorCode(image.getColorCode())
                 .build();
         configMap.put(battleId, config);
         return config;
