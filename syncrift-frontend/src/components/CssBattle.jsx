@@ -1,11 +1,214 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from "react";
+import * as monaco from "monaco-editor";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { Code2, Play, Target, Zap } from "lucide-react";
+import kr from "monaco-themes/themes/krTheme.json";
+import { useBattle, useStomp } from "@/utils/StompContext";
 
-function CssBattle() {
+function CSSBattle() {
+  const { battleData } = useBattle();
+  const { send } = useStomp();
+  const [url] = useState(battleData.config.imageUrl);
+  const [duration] = useState(battleData.config.duration);
+  const [targetColors] = useState(battleData.config.colorCode || []);
+  const editorRef = useRef(null);
+  const monacoRef = useRef(null);
+
+  const [htmlCode, setHtmlCode] = useState(`<div class="box"></div>`);
+  const [cssCode, setCssCode] = useState(`.box {
+  width: 100px;
+  height: 100px;
+  background: #dd6b4d;
+}`);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const timeout = setTimeout(() => {
+      if (editorRef.current && !monacoRef.current) {
+        const combinedCode = `<style>\n${cssCode}\n</style>\n${htmlCode}`;
+        monaco.editor.defineTheme("kr", kr);
+        monacoRef.current = monaco.editor.create(editorRef.current, {
+          value: combinedCode,
+          language: "html",
+          theme: "kr",
+          automaticLayout: true,
+          minimap: { enabled: false },
+          fontSize: 18,
+          lineHeight: 24,
+          fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+          scrollBeyondLastLine: false,
+          wordWrap: "on",
+          bracketPairColorization: { enabled: true },
+          lineNumbers: "off",
+          padding: { top: 16, bottom: 8 },
+        });
+
+        monacoRef.current.onDidChangeModelContent(() => {
+          const updatedValue = monacoRef.current.getValue();
+          const [stylePart, ...htmlParts] = updatedValue.split(/<\/style>\s*/);
+          const cssContent = stylePart.replace(/<style>/, "").trim();
+          const htmlContent = htmlParts.join("</style>").trim();
+          setCssCode(cssContent);
+          setHtmlCode(htmlContent);
+        });
+      }
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      monacoRef.current?.dispose();
+    };
+  }, []);
+
+  useEffect(() => {
+    const iframe = document.getElementById("preview-frame");
+    if (!iframe) return;
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: Arial, sans-serif; 
+              padding: 16px;
+              min-height: 100vh;
+            }
+            ${cssCode}
+          </style>
+        </head>
+        <body>
+          ${htmlCode}
+        </body>
+      </html>
+    `);
+    iframeDoc.close();
+  }, [htmlCode, cssCode]);
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      toast.success(`Submission successful!`, {
+        description: "Your code has been submitted for evaluation.",
+        duration: 4000,
+      });
+    } catch (error) {
+      toast.error("Submission failed", {
+        description: "Please check your connection and try again.",
+        duration: 4000,
+      });
+      console.error("Error submitting code:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const characterCount = htmlCode.length + cssCode.length;
+
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-            <h1 style={{ fontSize: '4rem', textAlign: 'center' }}>Coming Soon!</h1>
+    <div className="h-screen w-full bg-black text-white pt-16">
+      <div className="h-[calc(100vh-64px)] grid grid-cols-3 gap-0">
+        <Card className="rounded-none border-r border-l-0 border-t-0 border-b-0 bg-black">
+          <div className="px-3 py-0.5 text-xl font-bold flex items-center gap-1">
+            <Code2 className="h-4 w-4" />
+            Code Editor
+          </div>
+          <CardContent className="p-0 flex flex-col h-[calc(100%-24px)]">
+            <div ref={editorRef} className="flex-1 border-y" />
+            <div className="p-4 space-y-3">
+              <div className="flex items-center justify-center text-sm text-muted-foreground">
+                <span>Ready to submit?</span>
+              </div>
+              <Button
+                onClick={handleSubmit}
+                disabled={isLoading}
+                className="w-full gap-2"
+                size="lg"
+              >
+                <Play className="h-4 w-4" />
+                {isLoading ? "Submitting..." : "Submit Solution"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-none border-r border-l-0 border-t-0 border-b-0 bg-black">
+          <div className="px-3 py-0.5 text-xl font-bold">Live Preview</div>
+          <CardContent className="p-0 flex flex-col h-[calc(100%-24px)]">
+            <div className="flex-1 bg-white border-y">
+              <iframe
+                id="preview-frame"
+                className="w-full h-full"
+                title="Live Preview"
+                style={{ backgroundColor: "white" }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-none border-r-0 border-l-0 border-t-0 border-b-0 bg-black">
+          <div className="px-3 py-0.5 text-xl font-bold flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <Target className="h-4 w-4" />
+              Target Design
+            </div>
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+              400×300px
+            </Badge>
+          </div>
+          <CardContent className="p-0 flex flex-col h-[calc(100%-24px)]">
+            <img
+              src={url}
+              alt="Target Design"
+              onError={(e) => {
+                e.currentTarget.src = "";
+                e.currentTarget.alt = "Image failed to load";
+              }}
+              className="object-contain"
+            />
+            <div className="p-4 space-y-3">
+              <div className="text-sm font-medium text-muted-foreground">
+                Color Palette
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {targetColors.map((color, index) => (
+                  <button
+                    key={index}
+                    className="h-10 rounded-md border border-border hover:border-primary transition-colors flex items-center justify-center text-xs font-mono font-medium"
+                    style={{
+                      backgroundColor: color,
+                      color: color === "#FFFFFF" ? "#000" : "#fff",
+                    }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(color);
+                      toast.success("Color copied!", {
+                        description: `${color} copied to clipboard`,
+                        duration: 2000,
+                      });
+                    }}
+                  >
+                    {color}
+                  </button>
+                ))}
+              </div>
+              <div className="text-xs text-muted-foreground text-center">
+                Click colors to copy to clipboard
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
-)
+  );
 }
 
-export default CssBattle;
+export default CSSBattle;
