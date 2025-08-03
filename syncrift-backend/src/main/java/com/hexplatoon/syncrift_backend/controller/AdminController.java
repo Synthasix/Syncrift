@@ -1,8 +1,7 @@
 package com.hexplatoon.syncrift_backend.controller;
 
 import com.hexplatoon.syncrift_backend.dto.UploadImageResponse;
-import com.hexplatoon.syncrift_backend.entity.UploadedImage;
-import com.hexplatoon.syncrift_backend.repository.UploadedImageRepository;
+import com.hexplatoon.syncrift_backend.entity.Image;
 import com.hexplatoon.syncrift_backend.service.ImageUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,7 +20,7 @@ public class AdminController {
     @PostMapping("/upload")
     public ResponseEntity<UploadImageResponse> uploadImage(@RequestParam("image") MultipartFile imageFile) {
         try {
-            UploadedImage savedImage = imageUploadService.uploadImage(imageFile); // Call the service method
+            Image savedImage = imageUploadService.uploadImage(imageFile); // Call the service method
             UploadImageResponse response = UploadImageResponse.builder() // Use builder pattern for DTO
                     .message("Image uploaded successfully to Cloudinary and URL saved to DB.")
                     .cloudinaryUrl(savedImage.getCloudinaryUrl())

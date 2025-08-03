@@ -53,7 +53,7 @@ export default function BattleWaitingPage() {
         const data = JSON.parse(message.body);
         console.log("data", data);
         battleData.config = data.config;
-        // console.log("battle data: ", battleData);
+        console.log("battle data: ", data.config);
         updateBattleData(battleData);
         navigate("/battle");
       }

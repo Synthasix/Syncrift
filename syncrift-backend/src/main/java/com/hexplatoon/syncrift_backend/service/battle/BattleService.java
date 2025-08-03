@@ -131,6 +131,7 @@ public class BattleService{
         Config config = null;
         if (battle.getCategory() == Battle.Category.TB){
             config = typingBattleHandlerService.getConfig(battleId);
+
         }else if(battle.getCategory() == Battle.Category.CSS){
             config = cssBattleHandlerService.getConfig(battleId);
         }
@@ -152,7 +153,7 @@ public class BattleService{
         // send data to users with websocket
         simpMessagingTemplate.convertAndSendToUser(challenger.getUsername(),"/topic/battle/start", dto);
         simpMessagingTemplate.convertAndSendToUser(opponent.getUsername(),"/topic/battle/start", dto);
-
+        System.out.println("Battle started with config:" + config.toString());
         battle.setStatus(Battle.Status.ONGOING);
         battle.setStartedAt(LocalDateTime.now());
         battleRepository.save(battle);

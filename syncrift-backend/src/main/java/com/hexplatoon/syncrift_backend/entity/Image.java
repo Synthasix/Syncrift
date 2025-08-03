@@ -5,17 +5,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.apachecommons.CommonsLog;
 
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "uploaded_images")
+@Table(name = "images")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UploadedImage {
+public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

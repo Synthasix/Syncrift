@@ -2,8 +2,8 @@ package com.hexplatoon.syncrift_backend.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.hexplatoon.syncrift_backend.entity.UploadedImage;
-import com.hexplatoon.syncrift_backend.repository.UploadedImageRepository;
+import com.hexplatoon.syncrift_backend.entity.Image;
+import com.hexplatoon.syncrift_backend.repository.ImageRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -26,11 +26,11 @@ public class ImageUploadService {
     private Path tempUploadPath;
 
     private final Cloudinary cloudinary;
-    private final UploadedImageRepository uploadedImageRepository;
+    private final ImageRepository imageRepository;
 
-    public ImageUploadService(Cloudinary cloudinary, UploadedImageRepository uploadedImageRepository) {
+    public ImageUploadService(Cloudinary cloudinary, ImageRepository imageRepository) {
         this.cloudinary = cloudinary;
-        this.uploadedImageRepository = uploadedImageRepository;
+        this.imageRepository = imageRepository;
     }
 
     @PostConstruct
@@ -46,7 +46,7 @@ public class ImageUploadService {
         }
     }
 
-    public UploadedImage uploadImage(MultipartFile file) throws IOException{
+    public Image uploadImage(MultipartFile file) throws IOException{
         if(file.isEmpty()){
             throw new IllegalArgumentException("Cannot upload empty file");
         }
@@ -77,11 +77,11 @@ public class ImageUploadService {
 
             System.out.println("Uploaded to Cloudinary " + cloudinaryUrl + " with id " + publicId );
 
-            UploadedImage uploadedImage = UploadedImage.builder()
+            Image image = Image.builder()
                     .cloudinaryUrl(cloudinaryUrl)
                     .publicId(publicId)
                     .build();
-            UploadedImage savedImage = uploadedImageRepository.save(uploadedImage);
+            Image savedImage = imageRepository.save(image);
             return savedImage;
         }catch (IOException e){
             System.err.println("Error during image upload: " + e.getMessage());
