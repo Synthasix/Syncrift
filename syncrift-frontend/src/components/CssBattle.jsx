@@ -12,30 +12,33 @@ function CSSBattle() {
   const { battleData } = useBattle();
   const { send } = useStomp();
   const [url] = useState(battleData.config.imageUrl);
-  const [duration] = useState(battleData.config.duration); // in minutes
+  const [duration] = useState(battleData.config.duration);
   const [targetColors] = useState(battleData.config.colorCode || []);
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
+  const submittedRef = useRef(false); // ✅ Prevent double submission
 
-  const [htmlCode, setHtmlCode] = useState(`<div class="box"></div>`);
-  const [cssCode, setCssCode] = useState(`.box {
+  const initialCode = `<style>
+.box {
   width: 100px;
   height: 100px;
   background: #dd6b4d;
-}`);
+}
+</style>
+
+<div class="box"></div>`;
+
   const [isLoading, setIsLoading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(duration); // in seconds
+  const [timeLeft, setTimeLeft] = useState(duration);
 
-  // Countdown timer
+  // ✅ Timer - runs only once
   useEffect(() => {
-    if (hasSubmitted) return;
-
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          handleAutoSubmit();
+          handleAutoSubmit(); // ✅ Auto submit once
           return 0;
         }
         return prev - 1;
@@ -43,7 +46,7 @@ function CSSBattle() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [hasSubmitted]);
+  }, []); // ✅ Run once on mount only
 
   // Monaco Editor setup
   useEffect(() => {
@@ -51,10 +54,9 @@ function CSSBattle() {
 
     const timeout = setTimeout(() => {
       if (editorRef.current && !monacoRef.current) {
-        const combinedCode = `<style>\n${cssCode}\n</style>\n${htmlCode}`;
         monaco.editor.defineTheme("kr", kr);
         monacoRef.current = monaco.editor.create(editorRef.current, {
-          value: combinedCode,
+          value: initialCode,
           language: "html",
           theme: "kr",
           automaticLayout: true,
@@ -68,15 +70,6 @@ function CSSBattle() {
           lineNumbers: "off",
           padding: { top: 16, bottom: 8 },
         });
-
-        monacoRef.current.onDidChangeModelContent(() => {
-          const updatedValue = monacoRef.current.getValue();
-          const [stylePart, ...htmlParts] = updatedValue.split(/<\/style>\s*/);
-          const cssContent = stylePart.replace(/<style>/, "").trim();
-          const htmlContent = htmlParts.join("</style>").trim();
-          setCssCode(cssContent);
-          setHtmlCode(htmlContent);
-        });
       }
     }, 0);
 
@@ -86,49 +79,42 @@ function CSSBattle() {
     };
   }, []);
 
-  // Live preview iframe
+  // Live preview update
   useEffect(() => {
-    const iframe = document.getElementById("preview-frame");
-    if (!iframe) return;
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-    iframeDoc.open();
-    iframeDoc.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              font-family: Arial, sans-serif; 
-              padding: 16px;
-              min-height: 100vh;
-            }
-            ${cssCode}
-          </style>
-        </head>
-        <body>
-          ${htmlCode}
-        </body>
-      </html>
-    `);
-    iframeDoc.close();
-  }, [htmlCode, cssCode]);
+    const interval = setInterval(() => {
+      const iframe = document.getElementById("preview-frame");
+      if (!iframe || !monacoRef.current) return;
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+      iframeDoc.open();
+      iframeDoc.write(`
+        <!DOCTYPE html>
+        <html><head></head><body>
+        ${monacoRef.current.getValue()}
+        </body></html>`);
+      iframeDoc.close();
+    }, 1000);
 
-  // Submit manually
+    return () => clearInterval(interval);
+  }, []);
+
+  // ✅ Manual submit
   const handleSubmit = async () => {
-    if (hasSubmitted) return;
+    if (submittedRef.current || hasSubmitted) return;
 
+    submittedRef.current = true;
+    setHasSubmitted(true);
     setIsLoading(true);
+
     try {
+      const latestCode = monacoRef.current?.getValue() ?? "";
       const payload = {
         battleId: battleData.battleId,
-        text: `<style>\n${cssCode.trim()}\n</style>\n${htmlCode.trim()}`,
+        text: latestCode.trim(),
       };
       send("/app/battle/end", payload);
-      setHasSubmitted(true);
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success(`Submission successful!`, {
+      toast.success("Submission successful!", {
         description: "Your code has been submitted for evaluation.",
         duration: 4000,
       });
@@ -143,20 +129,24 @@ function CSSBattle() {
     }
   };
 
-  // Auto-submit when time ends
+  // ✅ Auto submit - guarded
   const handleAutoSubmit = () => {
-    if (hasSubmitted) return;
+    console.log("AUTO SUBMIT CALLED"); // For debugging
 
+    if (submittedRef.current || hasSubmitted) return;
+
+    submittedRef.current = true;
+    setHasSubmitted(true);
+
+    const latestCode = monacoRef.current?.getValue() ?? "";
     const payload = {
       battleId: battleData.battleId,
-      text: `<style>\n${cssCode.trim()}\n</style>\n${htmlCode.trim()}`,
+      text: latestCode.trim(),
     };
     send("/app/battle/end", payload);
-    setHasSubmitted(true);
+
     toast.success("Time's up! Code submitted.");
   };
-
-  const characterCount = htmlCode.length + cssCode.length;
 
   return (
     <div className="h-screen w-full bg-black text-white pt-16">

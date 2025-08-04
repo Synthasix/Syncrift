@@ -73,7 +73,7 @@ public class BattleService{
         // TODO : This duration will be fetched from the challenge
         int duration = 0;
         if (eventType == Challenge.EventType.TB) duration = 30;
-        else if (eventType == Challenge.EventType.CSS) duration = 30;
+        else if (eventType == Challenge.EventType.CSS) duration = 90;
         else if (eventType == Challenge.EventType.CF) duration = 3600;
 
 
@@ -158,9 +158,8 @@ public class BattleService{
         battle.setStartedAt(LocalDateTime.now());
         battleRepository.save(battle);
 
-        // Start timer
-        battleTimerService.startBattleTimer(battleId, battle.getDuration() +
-                (battle.getCategory() == Battle.Category.TB ? 5 : 0));
+        // Start timer with 5 seconds grace period
+        battleTimerService.startBattleTimer(battleId, battle.getDuration() + 5);
 
 //        activeSessions.put(battleId, session);
     }

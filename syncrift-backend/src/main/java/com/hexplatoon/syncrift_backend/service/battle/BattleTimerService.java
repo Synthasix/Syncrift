@@ -59,6 +59,10 @@ public class BattleTimerService {
         }
     }
 
+    public boolean isBattleRunning(Long battleId) {
+        return battleTimers.containsKey(battleId);
+    }
+
 //    public void forceEndBattleTimer(Long battleId) {
 //        cancelBattleTimer(battleId);
 //        battleService.endBattle(battleId);

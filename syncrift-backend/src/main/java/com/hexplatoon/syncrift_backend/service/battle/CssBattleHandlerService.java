@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
@@ -79,9 +80,12 @@ public class CssBattleHandlerService {
      */
     public void saveUserText(Long battleId, String username, String text) {
         // Ensure the inner map exists for this battleId
+//        System.out.println(username + ": " + text);
         userTextMap.computeIfAbsent(battleId, k -> new ConcurrentHashMap<>())
                 .put(username, text);
-        if(userTextMap.get(battleId).size() == 2) {
+//        System.out.println(userTextMap.get(battleId));
+        if(userTextMap.get(battleId).size() == 2 && battleTimerService.isBattleRunning(battleId)) {
+            System.out.println(username + " have called the end battle method.");
             battleTimerService.cancelBattleTimer(battleId);
             battleService.endBattle(battleId);
         }
@@ -95,7 +99,10 @@ public class CssBattleHandlerService {
      * @throws Exception if screenshot capture fails.
      */
     public String captureScreenshot(Long battleId, String username) throws Exception {
-        String htmlContent = userTextMap.get(battleId).get(username);
+        String htmlContent = Optional.ofNullable(userTextMap.get(battleId))
+                .map(innerMap -> innerMap.get(username))
+                .orElse(null);
+
         if (htmlContent == null || htmlContent.isEmpty()) {
             throw new IllegalArgumentException("No HTML content found for " + username + " in battle " + battleId);
         }
