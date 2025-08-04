@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Code2, Play, Target, Zap } from "lucide-react";
+import { Code2, Play, Target } from "lucide-react";
 import kr from "monaco-themes/themes/krTheme.json";
 import { useBattle, useStomp } from "@/utils/StompContext";
 
@@ -12,7 +12,7 @@ function CSSBattle() {
   const { battleData } = useBattle();
   const { send } = useStomp();
   const [url] = useState(battleData.config.imageUrl);
-  const [duration] = useState(battleData.config.duration);
+  const [duration] = useState(battleData.config.duration); // in minutes
   const [targetColors] = useState(battleData.config.colorCode || []);
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
@@ -23,9 +23,29 @@ function CSSBattle() {
   height: 100px;
   background: #dd6b4d;
 }`);
-
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(duration); // in seconds
 
+  // Countdown timer
+  useEffect(() => {
+    if (hasSubmitted) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          handleAutoSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [hasSubmitted]);
+
+  // Monaco Editor setup
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -66,6 +86,7 @@ function CSSBattle() {
     };
   }, []);
 
+  // Live preview iframe
   useEffect(() => {
     const iframe = document.getElementById("preview-frame");
     if (!iframe) return;
@@ -93,9 +114,19 @@ function CSSBattle() {
     iframeDoc.close();
   }, [htmlCode, cssCode]);
 
+  // Submit manually
   const handleSubmit = async () => {
+    if (hasSubmitted) return;
+
     setIsLoading(true);
     try {
+      const payload = {
+        battleId: battleData.battleId,
+        text: `<style>\n${cssCode.trim()}\n</style>\n${htmlCode.trim()}`,
+      };
+      send("/app/battle/end", payload);
+      setHasSubmitted(true);
+
       await new Promise((resolve) => setTimeout(resolve, 1500));
       toast.success(`Submission successful!`, {
         description: "Your code has been submitted for evaluation.",
@@ -112,15 +143,34 @@ function CSSBattle() {
     }
   };
 
+  // Auto-submit when time ends
+  const handleAutoSubmit = () => {
+    if (hasSubmitted) return;
+
+    const payload = {
+      battleId: battleData.battleId,
+      text: `<style>\n${cssCode.trim()}\n</style>\n${htmlCode.trim()}`,
+    };
+    send("/app/battle/end", payload);
+    setHasSubmitted(true);
+    toast.success("Time's up! Code submitted.");
+  };
+
   const characterCount = htmlCode.length + cssCode.length;
 
   return (
     <div className="h-screen w-full bg-black text-white pt-16">
       <div className="h-[calc(100vh-64px)] grid grid-cols-3 gap-0">
+        {/* Code Editor */}
         <Card className="rounded-none border-r border-l-0 border-t-0 border-b-0 bg-black">
-          <div className="px-3 py-0.5 text-xl font-bold flex items-center gap-1">
-            <Code2 className="h-4 w-4" />
-            Code Editor
+          <div className="px-3 py-0.5 text-xl font-bold flex items-center gap-1 justify-between">
+            <div className="flex items-center gap-1">
+              <Code2 className="h-4 w-4" />
+              Code Editor
+            </div>
+            <span className="text-sm font-mono text-muted-foreground">
+              Time Left: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
+            </span>
           </div>
           <CardContent className="p-0 flex flex-col h-[calc(100%-24px)]">
             <div ref={editorRef} className="flex-1 border-y" />
@@ -130,17 +180,18 @@ function CSSBattle() {
               </div>
               <Button
                 onClick={handleSubmit}
-                disabled={isLoading}
+                disabled={isLoading || hasSubmitted}
                 className="w-full gap-2"
                 size="lg"
               >
                 <Play className="h-4 w-4" />
-                {isLoading ? "Submitting..." : "Submit Solution"}
+                {isLoading ? "Submitting..." : hasSubmitted ? "Submitted" : "Submit Solution"}
               </Button>
             </div>
           </CardContent>
         </Card>
 
+        {/* Live Preview */}
         <Card className="rounded-none border-r border-l-0 border-t-0 border-b-0 bg-black">
           <div className="px-3 py-0.5 text-xl font-bold">Live Preview</div>
           <CardContent className="p-0 flex flex-col h-[calc(100%-24px)]">
@@ -155,6 +206,7 @@ function CSSBattle() {
           </CardContent>
         </Card>
 
+        {/* Target Image & Colors */}
         <Card className="rounded-none border-r-0 border-l-0 border-t-0 border-b-0 bg-black">
           <div className="px-3 py-0.5 text-xl font-bold flex items-center justify-between">
             <div className="flex items-center gap-1">

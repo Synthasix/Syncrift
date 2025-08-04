@@ -25,6 +25,7 @@ public class BattleTimerService {
         if (battleTimers.containsKey(battleId)) return;
 
         ScheduledFuture<?> future = scheduler.schedule(() -> {
+            System.out.println("battle ended.");
             battleService.endBattle(battleId);
             battleTimers.remove(battleId);
         }, durationSeconds, TimeUnit.SECONDS);

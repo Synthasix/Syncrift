@@ -34,6 +34,7 @@ public class BattleWebSocketController {
         if(battleType.getCategory() == Battle.Category.TB){
             typingBattleHandlerService.saveUserText(dto.getBattleId(), username, dto.getText());
         }else if(battleType.getCategory() == Battle.Category.CSS){
+//            System.out.println(dto.getText());
             cssBattleHandlerService.saveUserText(dto.getBattleId(), username, dto.getText());
         }
     }

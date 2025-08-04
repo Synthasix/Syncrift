@@ -73,7 +73,7 @@ public class BattleService{
         // TODO : This duration will be fetched from the challenge
         int duration = 0;
         if (eventType == Challenge.EventType.TB) duration = 30;
-        else if (eventType == Challenge.EventType.CSS) duration = 1200;
+        else if (eventType == Challenge.EventType.CSS) duration = 30;
         else if (eventType == Challenge.EventType.CF) duration = 3600;
 
 
