@@ -2,6 +2,7 @@ package com.hexplatoon.syncrift_backend.dto.battle.config;
 
 import lombok.Builder;
 import lombok.Data;
+import java.util.List;
 
 @Data
 //@NoArgsConstructor
@@ -10,6 +11,5 @@ import lombok.Data;
 public class CssConfig implements Config {
     private String imageUrl;
     private Integer duration;
-    private String color1;
-    private String color2;
+    private List<String> colorCode;
 }

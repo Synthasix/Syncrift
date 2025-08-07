@@ -11,6 +11,7 @@ import { LoginProvider } from "./utils/LoginContext";
 import WaitingRoom from "./pages/WaitingRoom";
 import BattlePage from "./pages/BattlePage";
 import BattleResults from "./components/BattleResult";
+import CSSBattle from "./components/CssBattle";
 
 
 function AppContent() {
@@ -35,6 +36,7 @@ function AppContent() {
           <Route path="/room" element={<WaitingRoom/>}/>
           <Route path="/battle" element={<BattlePage/>}/>
           <Route path="/battleresult" element={<BattleResults/>}/>
+          <Route path="/test" element={<CSSBattle/>}/>
         </Route>
       </Routes>
     </>

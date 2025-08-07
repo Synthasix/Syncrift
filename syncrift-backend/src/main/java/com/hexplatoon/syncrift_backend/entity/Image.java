@@ -5,17 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.apachecommons.CommonsLog;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Entity
-@Table(name = "uploaded_images")
+@Table(name = "images")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UploadedImage {
+public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,11 +26,8 @@ public class UploadedImage {
     @Column(name = "public_id", length = 255)
     private String publicId;
 
-    @Column(name = "color1", length = 20)
-    private String color1;
-
-    @Column(name = "colo2", length = 20)
-    private String colo2;
+    @Column(name = "color_code")
+    private List<String> colorCode;
 
     @Column(name="uploaded_at", nullable = false)
     private OffsetDateTime uploadedAt;

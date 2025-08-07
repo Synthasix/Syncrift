@@ -73,7 +73,7 @@ public class BattleService{
         // TODO : This duration will be fetched from the challenge
         int duration = 0;
         if (eventType == Challenge.EventType.TB) duration = 30;
-        else if (eventType == Challenge.EventType.CSS) duration = 1200;
+        else if (eventType == Challenge.EventType.CSS) duration = 1800;
         else if (eventType == Challenge.EventType.CF) duration = 3600;
 
 
@@ -131,6 +131,7 @@ public class BattleService{
         Config config = null;
         if (battle.getCategory() == Battle.Category.TB){
             config = typingBattleHandlerService.getConfig(battleId);
+
         }else if(battle.getCategory() == Battle.Category.CSS){
             config = cssBattleHandlerService.getConfig(battleId);
         }
@@ -152,12 +153,12 @@ public class BattleService{
         // send data to users with websocket
         simpMessagingTemplate.convertAndSendToUser(challenger.getUsername(),"/topic/battle/start", dto);
         simpMessagingTemplate.convertAndSendToUser(opponent.getUsername(),"/topic/battle/start", dto);
-
+        System.out.println("Battle started with config:" + config.toString());
         battle.setStatus(Battle.Status.ONGOING);
         battle.setStartedAt(LocalDateTime.now());
         battleRepository.save(battle);
 
-        // Start timer
+        // Start timer with 5 seconds grace period
         battleTimerService.startBattleTimer(battleId, battle.getDuration() + 5);
 
 //        activeSessions.put(battleId, session);
