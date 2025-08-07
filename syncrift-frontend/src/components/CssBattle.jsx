@@ -1,12 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as monaco from "monaco-editor";
+import AceEditor from "react-ace";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Code2, Play, Target } from "lucide-react";
-import kr from "monaco-themes/themes/krTheme.json";
 import { useBattle, useStomp } from "@/utils/StompContext";
+
+// Ace Editor: load mode & theme
+import "ace-builds/src-noconflict/mode-html";
+import "ace-builds/src-noconflict/theme-tomorrow_night_bright";
+import "ace-builds/src-noconflict/ext-language_tools";
 
 function CSSBattle() {
   const { battleData } = useBattle();
@@ -14,10 +18,8 @@ function CSSBattle() {
   const [url] = useState(battleData.config.imageUrl);
   const [duration] = useState(battleData.config.duration);
   const [targetColors] = useState(battleData.config.colorCode || []);
-  const editorRef = useRef(null);
-  const monacoRef = useRef(null);
-  const submittedRef = useRef(false); // ✅ Prevent double submission
 
+  const submittedRef = useRef(false);
   const initialCode = `<style>
 .box {
   width: 100px;
@@ -28,95 +30,49 @@ function CSSBattle() {
 
 <div class="box"></div>`;
 
+  const [code, setCode] = useState(initialCode);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(duration);
 
-  // ✅ Fixed Timer - Calculate from end time instead of countdown
+  // ✅ Timer Logic
   useEffect(() => {
-    const endTime = Date.now() + (duration * 1000);
-    
+    const endTime = Date.now() + duration * 1000;
+
     const updateTimer = () => {
       const now = Date.now();
       const remaining = Math.max(0, Math.ceil((endTime - now) / 1000));
-      
       setTimeLeft(remaining);
-      
+
       if (remaining <= 0 && !submittedRef.current) {
         handleAutoSubmit();
       }
     };
 
-    // Update immediately
     updateTimer();
-    
     const interval = setInterval(updateTimer, 1000);
-    
-    // Handle visibility change to update timer when tab becomes active
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        updateTimer();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []); // ✅ Run once on mount only
-
-  // Monaco Editor setup
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const timeout = setTimeout(() => {
-      if (editorRef.current && !monacoRef.current) {
-        monaco.editor.defineTheme("kr", kr);
-        monacoRef.current = monaco.editor.create(editorRef.current, {
-          value: initialCode,
-          language: "html",
-          theme: "kr",
-          automaticLayout: true,
-          minimap: { enabled: false },
-          fontSize: 18,
-          lineHeight: 24,
-          fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
-          scrollBeyondLastLine: false,
-          wordWrap: "on",
-          bracketPairColorization: { enabled: true },
-          lineNumbers: "off",
-          padding: { top: 16, bottom: 8 },
-        });
-      }
-    }, 0);
-
-    return () => {
-      clearTimeout(timeout);
-      monacoRef.current?.dispose();
-    };
-  }, []);
-
-  // Live preview update
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const iframe = document.getElementById("preview-frame");
-      if (!iframe || !monacoRef.current) return;
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-      iframeDoc.open();
-      iframeDoc.write(`
-        <!DOCTYPE html>
-        <html><head></head><body>
-        ${monacoRef.current.getValue()}
-        </body></html>`);
-      iframeDoc.close();
-    }, 1000);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) updateTimer();
+    });
 
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ Manual submit
+  // ✅ Instant Live Preview Update
+  const updatePreview = (htmlCode) => {
+    const iframe = document.getElementById("preview-frame");
+    if (!iframe) return;
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(`<!DOCTYPE html><html><head></head><body>${htmlCode}</body></html>`);
+    iframeDoc.close();
+  };
+
+  useEffect(() => {
+    updatePreview(code); // Initial render
+  }, []);
+
+  // ✅ Submit Handlers
   const handleSubmit = async () => {
     if (submittedRef.current || hasSubmitted) return;
 
@@ -125,14 +81,13 @@ function CSSBattle() {
     setIsLoading(true);
 
     try {
-      const latestCode = monacoRef.current?.getValue() ?? "";
       const payload = {
         battleId: battleData.battleId,
-        text: latestCode.trim(),
+        text: code.trim(),
       };
       send("/app/battle/end", payload);
-
       await new Promise((resolve) => setTimeout(resolve, 1500));
+
       toast.success("Submission successful!", {
         description: "Your code has been submitted for evaluation.",
         duration: 4000,
@@ -148,19 +103,15 @@ function CSSBattle() {
     }
   };
 
-  // ✅ Auto submit - guarded
   const handleAutoSubmit = () => {
-    console.log("AUTO SUBMIT CALLED"); // For debugging
-
     if (submittedRef.current || hasSubmitted) return;
 
     submittedRef.current = true;
     setHasSubmitted(true);
 
-    const latestCode = monacoRef.current?.getValue() ?? "";
     const payload = {
       battleId: battleData.battleId,
-      text: latestCode.trim(),
+      text: code.trim(),
     };
     send("/app/battle/end", payload);
 
@@ -182,7 +133,32 @@ function CSSBattle() {
             </span>
           </div>
           <CardContent className="p-0 flex flex-col h-[calc(100%-24px)]">
-            <div ref={editorRef} className="flex-1 border-y" />
+            <AceEditor
+              mode="html"
+              theme="tomorrow_night_bright"
+              name="ace-editor"
+              value={code}
+              onChange={(val) => {
+                setCode(val);
+                updatePreview(val);
+              }}
+              editorProps={{ $blockScrolling: true }}
+              fontSize={18}
+              width="100%"
+              height="100%"
+              setOptions={{
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
+                showLineNumbers: true,
+                tabSize: 2,
+              }}
+              style={{
+                flex: 1,
+                fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+                borderTop: "1px solid #333",
+                borderBottom: "1px solid #333",
+              }}
+            />
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-center text-sm text-muted-foreground">
                 <span>Ready to submit?</span>
@@ -237,9 +213,7 @@ function CSSBattle() {
               className="object-contain"
             />
             <div className="p-4 space-y-3">
-              <div className="text-sm font-medium text-muted-foreground">
-                Color Palette
-              </div>
+              <div className="text-sm font-medium text-muted-foreground">Color Palette</div>
               <div className="grid grid-cols-3 gap-2">
                 {targetColors.map((color, index) => (
                   <button
