@@ -5,7 +5,7 @@ import { Bell, UserCircle, Users, LogOut } from "lucide-react";
 import { useAuth } from "../utils/AuthContext";
 import { useState } from "react";
 import LoginPage from "./LoginPage";
-import SignUP from "./SignUP";
+import SignUp from "./SignUp";
 import NotificationPopup from "./NotificationPopup";
 import { useLogin } from "@/utils/LoginContext";
 
@@ -120,7 +120,7 @@ export default function Navbar() {
             onClick={() => setShowSignup(false)}
           />
           <div className="relative flex items-center justify-center h-full w-full p-4">
-            <SignUP onClose={() => setShowSignup(false)} />
+            <SignUp onClose={() => setShowSignup(false)} />
           </div>
         </div>
       )}
