@@ -12,6 +12,7 @@ import WaitingRoom from "./pages/WaitingRoom";
 import BattlePage from "./pages/BattlePage";
 import BattleResults from "./components/BattleResult";
 import CSSBattle from "./components/CssBattle";
+import CodeforcesBattle from "./components/CodeforcesBattlePopup";
 
 
 function AppContent() {
@@ -33,10 +34,9 @@ function AppContent() {
         <Route path="/" element={<LandingPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/friends" element={<FriendsPage />} />
-          <Route path="/room" element={<WaitingRoom/>}/>
-          <Route path="/battle" element={<BattlePage/>}/>
-          <Route path="/battleresult" element={<BattleResults/>}/>
-          <Route path="/test" element={<CSSBattle/>}/>
+          <Route path="/room" element={<WaitingRoom />} />
+          <Route path="/battle" element={<BattlePage />} />
+          <Route path="/battleresult" element={<BattleResults />} />
         </Route>
       </Routes>
     </>

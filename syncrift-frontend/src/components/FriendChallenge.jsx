@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, GamepadIcon, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,15 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/utils/AuthContext';
+import { SERVER } from '../utils/constant.js'
 
 export default function FriendChallenge({ battleType, onClose }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { token, friends } = useAuth();
-  
+  const { token, friends, fetchFriends } = useAuth();
+  const server = SERVER;
+  useEffect(() => {
+    fetchFriends();
+  }, [fetchFriends])
   console.log(friends);
-
   const onlineFriends = friends.filter(friend =>
     friend.status == "ONLINE" &&
     friend.username.toLowerCase().includes(searchQuery.toLowerCase())
@@ -22,14 +25,14 @@ export default function FriendChallenge({ battleType, onClose }) {
 
   const sendChallengeRequest = async () => {
     if (!selectedFriend) return;
-    
+
     setIsLoading(true);
-    
+
     try {
-      const response = await fetch('http://localhost:8081/api/challenges/create', {
+      const response = await fetch(`${server}/api/challenges/create`, {
         method: 'POST',
         headers: {
-          Authorization : `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -37,15 +40,15 @@ export default function FriendChallenge({ battleType, onClose }) {
           eventType: battleType
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to send challenge request');
       }
-      
+
       // Handle successful response
       const data = await response.json();
       console.log('Challenge created:', data);
-      
+
       // Close the modal after successful request
       onClose();
     } catch (error) {

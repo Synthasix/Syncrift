@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "../utils/AuthContext";
 import { cn } from "@/lib/utils";
 import { useStomp } from "@/utils/StompContext";
+import { SERVER } from '../utils/constant.js'
 
 export default function NotificationPopup({
   children,
@@ -21,7 +22,7 @@ export default function NotificationPopup({
   const [open, setOpen] = useState(false);
   const { user, token, fetchFriends } = useAuth();
   const { connected, subscribeWithCleanup } = useStomp();
-
+  const server = SERVER;
   console.log("NotificationPopup Render:", { user, notifications, open });
 
   useEffect(() => {
@@ -98,7 +99,7 @@ export default function NotificationPopup({
       if (notification.type === "challenge" && notification.challengeId) {
         console.log("Accepting Challenge:", notification.challengeId);
         const response = await fetch(
-          `http://localhost:8081/api/challenges/${notification.challengeId}/accept`,
+          `${server}/api/challenges/${notification.challengeId}/accept`,
           {
             method: "POST",
             headers: {
@@ -110,7 +111,7 @@ export default function NotificationPopup({
       } else if (notification.type === "friend_request") {
         console.log("Accepting Friend Request from:", notification);
         const response = await fetch(
-          `http://localhost:8081/api/friends/request/${notification.from}/accept`,
+          `${server}/api/friends/request/${notification.from}/accept`,
           {
             method: "PUT",
             headers: {
@@ -141,7 +142,7 @@ export default function NotificationPopup({
       if (notification.type === "challenge" && notification.challengeId) {
         console.log("Declining Challenge:", notification.challengeId);
         const response = await fetch(
-          `http://localhost:8081/api/challenges/${notification.challengeId}/decline`,
+          `${server}/api/challenges/${notification.challengeId}/decline`,
           {
             method: "POST",
             headers: {
@@ -152,7 +153,7 @@ export default function NotificationPopup({
       } else if (notification.type === "friend_request") {
         console.log("Declining Friend Request from:", notification.from);
         const response = await fetch(
-          `http://localhost:8081/api/friends/request/${notification.from}/decline`,
+          `${server}/api/friends/request/${notification.from}/decline`,
           {
             method: 'DELETE',
             headers: {

@@ -1,9 +1,9 @@
 import TypingBattle from '@/components/TypingBattle';
 import CssBattle from '@/components/CssBattle'
-import CodeforcesBattle from '@/components/CodeforcesBattle';
+import CodeforcesBattle from '@/components/CodeforcesBattlePopup';
 import { useAuth } from '@/utils/AuthContext';
 import { useBattle, useStomp } from '@/utils/StompContext';
-import { useEffect ,  } from 'react';
+import { useEffect, } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -13,7 +13,7 @@ const BattlePage = () => {
   const { subscribeWithCleanup } = useStomp()
   const navigate = useNavigate()
   let id = localStorage.getItem("battleId");
-  
+
   useEffect(() => {
     if (!token) return;
 
@@ -31,11 +31,11 @@ const BattlePage = () => {
 
     return cleanup;
   }, [token]);
- 
+
   // access through url or browser page navigation
-  useEffect(()=>{
+  useEffect(() => {
     if (!battleData?.battleId || battleData.battleId == id) {
-      navigate("/", {replace : true});
+      navigate("/", { replace: true });
     } else {
       localStorage.setItem("battleId", battleData.battleId);
     }

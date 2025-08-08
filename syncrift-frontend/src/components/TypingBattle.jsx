@@ -19,19 +19,19 @@ const TypingBattle = () => {
 
   useEffect(() => {
     const endTime = Date.now() + (duration * 1000);
-    
+
     const updateTimer = () => {
       const now = Date.now();
       const remaining = Math.max(0, Math.ceil((endTime - now) / 1000));
-      
+
       setTimeLeft(remaining);
     };
 
     // Update immediately
     updateTimer();
-    
+
     const interval = setInterval(updateTimer, 1000);
-    
+
     // Handle visibility change to update timer when tab becomes active
     const handleVisibilityChange = () => {
       if (!document.hidden) {
@@ -40,12 +40,12 @@ const TypingBattle = () => {
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []); 
+  }, []);
 
   useEffect(() => {
     console.log(input);
