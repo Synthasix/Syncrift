@@ -9,7 +9,7 @@ import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
-
+import { SERVER } from './constant.js'
 // Create Battle Context
 const BattleContext = createContext(null);
 export const useBattle = () => useContext(BattleContext);
@@ -24,7 +24,7 @@ export const StompProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const subscriptions = useRef([]);
   const reconnectTimeout = useRef(null);
-
+  const server = SERVER;
   const [battleData, setBattleData] = useState(null);
 
   const updateBattleData = (data) => {
@@ -32,7 +32,7 @@ export const StompProvider = ({ children }) => {
   };
 
   const connect = () => {
-    const socket = new SockJS("http://localhost:8081/ws");
+    const socket = new SockJS(`${server}/ws`);
     const stompClient = Stomp.over(socket);
     stompClient.reconnectDelay = 0;
 

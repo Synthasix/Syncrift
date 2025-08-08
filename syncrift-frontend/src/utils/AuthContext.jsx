@@ -2,6 +2,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SERVER } from './constant.js'
 
 const AuthContext = createContext();
 
@@ -13,9 +14,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const server = SERVER;
+
   const fetchFriends = async () => {
     try {
-      const response = await fetch('http://localhost:8081/api/friends', {
+      const response = await fetch(`${server}/api/friends`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Failed to fetch friends');
@@ -28,7 +31,7 @@ export function AuthProvider({ children }) {
 
   const fetchPendingRequests = async () => {
     try {
-      const response = await fetch('http://localhost:8081/api/friends/pending', {
+      const response = await fetch(`${server}/api/friends/pending`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Failed to fetch pending requests');
@@ -47,7 +50,7 @@ export function AuthProvider({ children }) {
       }
 
       try {
-        const response = await fetch('http://localhost:8081/api/auth/me', {
+        const response = await fetch(`${server}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.ok) {
@@ -72,13 +75,13 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     try {
-      const response = await fetch('http://localhost:8081/api/auth/login', {
+      const response = await fetch(`${server}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials)
       });
       const data = await response.json();
-      
+
       if (response.ok) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
@@ -94,13 +97,13 @@ export function AuthProvider({ children }) {
 
   const signup = async (userData) => {
     try {
-      const response = await fetch('http://localhost:8081/api/auth/register', {
+      const response = await fetch(`${server}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
       });
       const data = await response.json();
-      
+
       if (response.ok) {
         return true;
       }
@@ -119,18 +122,18 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      token, 
-      loading, 
+    <AuthContext.Provider value={{
+      user,
+      token,
+      loading,
       friends,
       setFriends,
       pendingRequests,
       fetchFriends,
       fetchPendingRequests,
-      login, 
-      signup, 
-      logout 
+      login,
+      signup,
+      logout
     }}>
       {children}
     </AuthContext.Provider>

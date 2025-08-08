@@ -1,16 +1,15 @@
-// BattleCards.jsx
 import { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Keyboard, Palette, Code } from "lucide-react";
 import { useAuth } from '@/utils/AuthContext';
 import FriendChallenge from './FriendChallenge';
+import CodeforcesBattlePopup from './CodeforcesBattlePopup.jsx'
 import { useLogin } from '@/utils/LoginContext';
 
 export default function BattleCards() {
   const [selectedBattle, setSelectedBattle] = useState(null);
   const { user, friends } = useAuth();
-  const {setShowLogin} = useLogin();
-
+  const { setShowLogin } = useLogin();
 
   if (user) {
     console.log(friends)
@@ -60,7 +59,7 @@ export default function BattleCards() {
               code and compete for the most efficient solutions.
             </p>
             <button
-              onClick={() =>{
+              onClick={() => {
                 if (!user) {
                   setShowLogin(true);
                 } else {
@@ -114,10 +113,17 @@ export default function BattleCards() {
 
           {/* Centered modal */}
           <div className="fixed inset-0 flex items-center justify-center p-4">
+            {selectedBattle === "CF" ? (
+              <CodeforcesBattlePopup
+                onClose={() => setSelectedBattle(null)}
+                friends={friends}
+              />
+            ) : (
               <FriendChallenge
                 battleType={selectedBattle}
                 onClose={() => setSelectedBattle(null)}
               />
+            )}
           </div>
         </div>
       )}

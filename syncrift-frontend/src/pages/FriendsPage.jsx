@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "../utils/AuthContext";
 import { useStomp } from "@/utils/StompContext";
+import { SERVER } from '../utils/constant.js'
 
 export default function FriendsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,16 +53,16 @@ export default function FriendsPage() {
   const [removeFriendUsername, setRemoveFriendUsername] = useState(null);
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
   const [error, setError] = useState(null);
-  
-  const { 
-    user, 
-    token, 
-    friends, 
+  const server = SERVER;
+  const {
+    user,
+    token,
+    friends,
     setFriends,
-    pendingRequests, 
-    fetchFriends, 
+    pendingRequests,
+    fetchFriends,
     fetchPendingRequests,
-    loading 
+    loading
   } = useAuth();
 
   const { connected, subscribeWithCleanup } = useStomp();
@@ -97,7 +98,7 @@ export default function FriendsPage() {
   const handleAcceptRequest = async (username) => {
     try {
       const response = await fetch(
-        `http://localhost:8081/api/friends/request/${username}/accept`,
+        `${server}/api/friends/request/${username}/accept`,
         {
           method: "PUT",
           headers: {
@@ -107,7 +108,7 @@ export default function FriendsPage() {
       );
 
       if (!response.ok) throw new Error('Failed to accept request');
-      
+
       await fetchFriends();
       await fetchPendingRequests();
     } catch (err) {
@@ -119,7 +120,7 @@ export default function FriendsPage() {
   const handleDeclineRequest = async (username) => {
     try {
       const response = await fetch(
-        `http://localhost:8081/api/friends/request/${username}/decline`,
+        `${server}/api/friends/request/${username}/decline`,
         {
           method: "DELETE",
           headers: {
@@ -129,7 +130,7 @@ export default function FriendsPage() {
       );
 
       if (!response.ok) throw new Error("Failed to decline request");
-      
+
       await fetchPendingRequests();
     } catch (err) {
       setError("Error declining friend request. Please try again.");
@@ -142,7 +143,7 @@ export default function FriendsPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:8081/api/friends/request",
+        `${server}/api/friends/request`,
         {
           method: "POST",
           headers: {
@@ -168,7 +169,7 @@ export default function FriendsPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:8081/api/friends/${removeFriendUsername}`,
+        `${server}/api/friends/${removeFriendUsername}`,
         {
           method: "DELETE",
           headers: {
@@ -178,7 +179,7 @@ export default function FriendsPage() {
       );
 
       if (!response.ok) throw new Error("Failed to remove friend");
-      
+
       await fetchFriends();
       setIsRemoveDialogOpen(false);
       setRemoveFriendUsername(null);
