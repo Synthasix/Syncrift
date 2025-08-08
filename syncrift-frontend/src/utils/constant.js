@@ -1,1 +1,1 @@
-export const SERVER = "http://localhost:8081";
+export const SERVER = import.meta.env.SERVER;
